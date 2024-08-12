@@ -1,0 +1,77 @@
+;
+; EventConnection.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=System ; TODO: specify appropriate Class
+ClassGuid={4d36e97d-e325-11ce-bfc1-08002be10318} ; TODO: specify appropriate ClassGuid
+Provider=%ManufacturerName%
+CatalogFile=EventConnection.cat
+DriverVer= ; TODO: set DriverVer in stampinf property pages
+PnpLockdown=1
+
+[DestinationDirs]
+DefaultDestDir = 12
+EventConnection_Device_CoInstaller_CopyFiles = 11
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+EventConnection.sys  = 1,,
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%EventConnection.DeviceDesc%=EventConnection_Device, Root\EventConnection ; TODO: edit hw-id
+
+[EventConnection_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+EventConnection.sys
+
+;-------------- Service installation
+[EventConnection_Device.NT.Services]
+AddService = EventConnection,%SPSVCINST_ASSOCSERVICE%, EventConnection_Service_Inst
+
+; -------------- EventConnection driver install sections
+[EventConnection_Service_Inst]
+DisplayName    = %EventConnection.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\EventConnection.sys
+
+;
+;--- EventConnection_Device Coinstaller installation ------
+;
+
+[EventConnection_Device.NT.CoInstallers]
+AddReg=EventConnection_Device_CoInstaller_AddReg
+CopyFiles=EventConnection_Device_CoInstaller_CopyFiles
+
+[EventConnection_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[EventConnection_Device_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[EventConnection_Device.NT.Wdf]
+KmdfService =  EventConnection, EventConnection_wdfsect
+[EventConnection_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="<Your manufacturer name>" ;TODO: Replace with your manufacturer name
+DiskName = "EventConnection Installation Disk"
+EventConnection.DeviceDesc = "EventConnection Device"
+EventConnection.SVCDESC = "EventConnection Service"
